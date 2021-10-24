@@ -13,6 +13,14 @@ var svg1 = d3
 
 //TODO: append svg object to the body of the page to house Scatterplot 2
 
+var svg2 = d3
+  .select("#dataviz_brushScatter2")
+  .append("svg")
+  .attr("width", width + margin.left + margin.right)
+  .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
 //TODO: append svg object to the body of the page to house Bar chart 
 
 // Define color scale
@@ -94,15 +102,73 @@ d3.csv("data/iris.csv").then((data) => {
 
   //TODO: Scatterplot 2 (show Sepal width on x-axis and Petal width on y-axis)
 
-  //TODO: Barchart with counts of different species
+//Scatterplot 1
+{
+  var xKey2 = "Sepal_Width";
+  var yKey2 = "Petal_Width";
 
-  //Brushing Code---------------------------------------------------------------------------------------------
-    
-  //Removes existing brushes from svg
-    function clear() {
-        svg1.call(brush1.move, null);
-        svg2.call(brush2.move, null);
-    }
+  //Add X axis
+  var x2 = d3
+    .scaleLinear()
+    .domain(d3.extent(data.map((val) => val[xKey2])))
+    .range([0, width]);
+  svg2
+    .append("g")
+    .attr("transform", "translate(0," + height + ")")
+    .call(d3.axisBottom(x2))
+    .call((g) =>
+      g
+        .append("text")
+        .attr("x", width)
+        .attr("y", margin.bottom - 4)
+        .attr("fill", "currentColor")
+        .attr("text-anchor", "end")
+        .text(xKey2)
+    );
+
+  //Add Y axis
+  var y2 = d3
+    .scaleLinear()
+    .domain(d3.extent(data.map((val) => val[yKey2])))
+    .range([height, 0]);
+  svg2
+    .append("g")
+    .call(d3.axisLeft(y2))
+    .call((g) =>
+      g
+        .append("text")
+        .attr("x", -margin.left)
+        .attr("y", 10)
+        .attr("fill", "currentColor")
+        .attr("text-anchor", "start")
+        .text(yKey2)
+    );
+
+  // Add dots
+  var myCircle2 = svg2
+    .append("g")
+    .selectAll("circle")
+    .data(data)
+    .enter()
+    .append("circle")
+    .attr("id", (d) => d.id)
+    .attr("cx", function (d) {
+      return x2(d[xKey2]);
+    })
+    .attr("cy", function (d) {
+      return y2(d[yKey2]);
+    })
+    .attr("r", 8)
+    .style("fill", function (d) {
+      return color(d.Species);
+    })
+    .style("opacity", 0.5);
+
+  //TODO: Define a brush
+
+  //TODO: Add brush to the svg
+  
+}
 
     //Is called when we brush on scatterplot #1
     function updateChart1(brushEvent) {
