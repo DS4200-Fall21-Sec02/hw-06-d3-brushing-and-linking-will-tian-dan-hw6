@@ -101,6 +101,15 @@ d3.csv('data/iris.csv').then((data) => {
     //TODO: Define a brush
 
     //TODO: Add brush to the svg
+    svg1.call(
+      d3
+        .brush() // Add the brush feature using the d3.brush function
+        .extent([
+          [0, 0],
+          [width, height],
+        ])
+        .on('end', updateChart1)
+    );
   }
 
   //TODO: Scatterplot 2 (show Sepal width on x-axis and Petal width on y-axis)
@@ -168,6 +177,15 @@ d3.csv('data/iris.csv').then((data) => {
     //TODO: Define a brush
 
     //TODO: Add brush to the svg
+    svg2.call(
+      d3
+        .brush() // Add the brush feature using the d3.brush function
+        .extent([
+          [0, 0],
+          [width, height],
+        ])
+        .on('end', updateChart2)
+    );
   }
 
   let newData = [
@@ -270,22 +288,94 @@ d3.csv('data/iris.csv').then((data) => {
   //Is called when we brush on scatterplot #1
   function updateChart1(brushEvent) {
     extent = brushEvent.selection;
-
     //TODO: Check all the circles that are within the brush region in Scatterplot 1
+    let brushedArr = [];
 
-    //TODO: Select all the data points in Scatterplot 2 which have the same id as those selected in Scatterplot 1
+    d3.selectAll('circle').each(function () {
+      const plot = this.parentElement.parentElement.parentElement.parentElement
+        .id;
+      const thisD3 = d3.select(this);
+      if (
+        plot === 'dataviz_brushScatter' &&
+        isBrushed(extent, thisD3.attr('cx'), thisD3.attr('cy'))
+      ) {
+        brushedArr.push(this.id);
+      }
+    });
+
+    d3.selectAll('circle')
+      .style('stroke', function () {
+        const plot = this.parentElement.parentElement.parentElement
+          .parentElement.id;
+        if (plot === 'dataviz_brushScatter2') {
+          if (brushedArr.includes(this.id)) {
+            return 'black';
+          } else {
+            return 'transparent';
+          }
+        }
+      })
+      .style('stroke-width', '2px');
   }
 
   //Is called when we brush on scatterplot #2
   function updateChart2(brushEvent) {
     extent = brushEvent.selection;
-    var selectedSpecies = new Set();
+    let selectedSpecies = [];
 
-    //TODO: Check all the circles that are within the brush region in Scatterplot 2
+    let brushedArr = [];
 
-    //TODO: Select all the data points in Scatterplot 1 which have the same id as those selected in Scatterplot 2
+    d3.selectAll('circle').each(function (d) {
+      const plot = this.parentElement.parentElement.parentElement.parentElement
+        .id;
+      const thisD3 = d3.select(this);
 
+      if (
+        plot === 'dataviz_brushScatter2' &&
+        isBrushed(extent, thisD3.attr('cx'), thisD3.attr('cy'))
+      ) {
+        brushedArr.push(this.id);
+        if (selectedSpecies.length === 0) {
+          selectedSpecies.push(d.Species);
+        } else {
+          let addNew = true;
+          for (const s of selectedSpecies) {
+            if (s === d.Species) {
+              addNew = false;
+            }
+          }
+          if (addNew) {
+            selectedSpecies.push(d.Species);
+          }
+        }
+      }
+    });
+
+    d3.selectAll('circle')
+      .style('stroke', function () {
+        const plot = this.parentElement.parentElement.parentElement
+          .parentElement.id;
+        if (plot === 'dataviz_brushScatter') {
+          if (brushedArr.includes(this.id)) {
+            return 'black';
+          } else {
+            return 'transparent';
+          }
+        }
+      })
+      .style('stroke-width', '2px');
     //TODO: Select bars in bar chart based on species selected in Scatterplot 2
+    console.log(selectedSpecies);
+
+    d3.selectAll('rect.bar')
+      .style('stroke', function (d) {
+        if (selectedSpecies.includes(d.name)) {
+          return 'black';
+        } else {
+          return 'transparent';
+        }
+      })
+      .style('stroke-width', '3px');
   }
 
   //Finds dots within the brushed region
